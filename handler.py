@@ -38,4 +38,14 @@ def handler(event):
             "[0:v]scale=1080:1080,format=rgba[v0];"
             "[1:v]scale=1080:1080,format=rgba[v1];"
             "[2:v]scale=1080:1080,format=rgba[v2];"
-            "[3:v]scale=1080:1080,format=rgba
+            "[3:v]scale=1080:1080,format=rgba[v3];"
+            "[4:v]scale=1080:1080,format=rgba[v4];"
+            "[v0][v1]xfade=transition=fade:duration=1:offset=11[v01];"
+            "[v01][v2]xfade=transition=fade:duration=1:offset=22[v012];"
+            "[v012][v3]xfade=transition=fade:duration=1:offset=33[v0123];"
+            "[v0123][v4]xfade=transition=fade:duration=1:offset=44[v]"
+        )
+
+        cmd = [
+            "ffmpeg",
+            "-loop","1","-t","12","-i",ima
