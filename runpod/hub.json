@@ -1,9 +1,23 @@
 {
-  "runsOn": "GPU",
-  "containerDiskInGb": 20,
-  "handler": "handler",
-  "gpuTypes": ["RTX_3090", "A10", "A100"],
-  "env": {
-    "GCS_BUCKET_NAME": "ssm-renders-8822"
+  "title": "SSM FFmpeg Renderer",
+  "description": "Serverless FFmpeg renderer for stitching images + audio into MP4",
+  "type": "serverless",
+  "category": "video",
+  "config": {
+    "runsOn": "CPU",
+    "containerDiskInGb": 20,
+    "timeoutInSeconds": 600
+  },
+  "inputs": {
+    "images": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Exactly 5 image URLs"
+    },
+    "audio": {
+      "type": "string",
+      "description": "Audio file URL (wav or mp3)"
+    }
   }
 }
+
