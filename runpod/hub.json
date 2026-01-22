@@ -1,0 +1,9 @@
+{
+  "runsOn": "GPU",
+  "containerDiskInGb": 20,
+  "handler": "handler",
+  "gpuTypes": ["RTX_3090", "A10", "A100"],
+  "env": {
+    "GCS_BUCKET_NAME": "ssm-renders-8822"
+  }
+}
