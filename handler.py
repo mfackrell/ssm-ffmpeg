@@ -5,7 +5,9 @@ import traceback
 from datetime import datetime
 import requests
 import runpod
+import os
 
+print("ENV:", {k: v for k, v in os.environ.items() if k.startswith("RUNPOD")}, flush=True)
 
 def download(url, path):
     r = requests.get(url, stream=True, timeout=30)
@@ -84,3 +86,6 @@ def handler(event):
 
 
 runpod.serverless.start({"handler": handler})
+print("START RETURNED — THIS SHOULD NEVER HAPPEN", flush=True)
+import time
+time.sleep(999999)
