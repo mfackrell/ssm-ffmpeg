@@ -1,4 +1,3 @@
-const runpod = require("runpod-sdk");
 const { Storage } = require("@google-cloud/storage");
 const ffmpegPath = require("ffmpeg-static");
 const { execFileSync } = require("child_process");
@@ -80,7 +79,7 @@ async function renderVideo(fileName, images, audio) {
   }
 }
 
-async function handler(event) {
+module.exports = async function handler(event) {
   console.log("Job received:", JSON.stringify(event));
 
   const { input } = event;
@@ -103,4 +102,3 @@ async function handler(event) {
   };
 }
 
-runpod.serverless.start({ handler })
