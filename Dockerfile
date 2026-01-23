@@ -15,7 +15,6 @@ COPY handler.py .
 # 4. Install Python dependencies
 RUN pip3 install --no-cache-dir \
     requests \
-    google-cloud-storage \
     runpod
 
 # 5. Run the handler with unbuffered output for real-time logs
