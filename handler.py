@@ -18,7 +18,6 @@ def _gcs_client():
         return storage.Client.from_service_account_info(creds)
     return storage.Client()
 
-gcs = _gcs_client()
 
 def download(url: str, dest_path: str):
     with requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"}) as r:
@@ -30,6 +29,8 @@ def download(url: str, dest_path: str):
 
 def handler(job):
     try:
+        gcs = _gcs_client()
+
         print("JOB RECEIVED:", job)
 
         job_input = job.get("input") or {}
