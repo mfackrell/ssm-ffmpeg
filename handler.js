@@ -103,4 +103,4 @@ async function handler(event) {
   };
 }
 
-runpod.serverless.start(handler);
+runpod.serverless.start({ handler })
