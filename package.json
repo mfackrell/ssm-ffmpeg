@@ -2,7 +2,7 @@
   "version": "v1.0.3",
   "name": "ssm-ffmpeg",
   "dependencies": {
-    "@runpod/serverless": "^1.1.0",
+    "runpod-sdk": "^1.1.0",
     "@google-cloud/storage": "^7.7.0",
     "axios": "^1.6.0",
     "ffmpeg-static": "^5.2.0"
