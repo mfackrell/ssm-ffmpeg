@@ -85,7 +85,7 @@ def handler(event):
         }
 
 
-runpod.serverless.start({"handler": handler})
+runpod.serverless.run({handler})
 print("START RETURNED — THIS SHOULD NEVER HAPPEN", flush=True)
 import time
 time.sleep(999999)
