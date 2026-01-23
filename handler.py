@@ -1,31 +1,21 @@
 import os
 import subprocess
 import tempfile
+import traceback
 from datetime import datetime
 import requests
-from google.cloud import storage
 import runpod
 
-BUCKET_NAME = os.environ.get("GCS_BUCKET_NAME")
-storage_client = storage.Client() if BUCKET_NAME else None
 
 def download(url, path):
-    r = requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"})
+    r = requests.get(url, stream=True, timeout=30)
     r.raise_for_status()
     with open(path, "wb") as f:
         for chunk in r.iter_content(chunk_size=8192):
             f.write(chunk)
 
-def upload_to_gcs(local_path, destination_name):
-    if not storage_client or not BUCKET_NAME:
-        return None
-    bucket = storage_client.bucket(BUCKET_NAME)
-    blob = bucket.blob(destination_name)
-    blob.upload_from_filename(local_path)
-    return f"https://storage.googleapis.com/{BUCKET_NAME}/{destination_name}"
 
 def build_ffmpeg_command(image_files, audio_path, output_path):
-    # Chaining the filters: [v01] flows into the next xfade, and so on.
     filters = (
         "[0:v]scale=1080:1080,format=rgba[v0];"
         "[1:v]scale=1080:1080,format=rgba[v1];"
@@ -48,34 +38,49 @@ def build_ffmpeg_command(image_files, audio_path, output_path):
         "-i", audio_path,
         "-filter_complex", filters,
         "-map", "[v]", "-map", "5:a",
-        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30", "-shortest",
-        output_path,
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "-r", "30", "-shortest",
+        output_path
     ]
 
+
 def handler(event):
-    payload = event.get("input", {})
-    images = payload.get("images")
-    audio_url = payload.get("audio")
+    try:
+        payload = event.get("input", {})
+        images = payload.get("images")
+        audio = payload.get("audio")
 
-    if not images or len(images) != 5 or not audio_url:
-        return {"error": "Must provide exactly 5 images and 1 audio URL"}
+        if not images or len(images) != 5 or not audio:
+            return {"error": "Must provide exactly 5 images and 1 audio URL"}
 
-    with tempfile.TemporaryDirectory() as tmp:
-        image_files = []
-        for i, url in enumerate(images):
-            img_path = os.path.join(tmp, f"img{i}.jpg")
-            download(url, img_path)
-            image_files.append(img_path)
+        with tempfile.TemporaryDirectory() as tmp:
+            imgs = []
+            for i, url in enumerate(images):
+                p = os.path.join(tmp, f"img{i}.jpg")
+                download(url, p)
+                imgs.append(p)
 
-        audio_path = os.path.join(tmp, "audio.wav")
-        download(audio_url, audio_path)
+            audio_path = os.path.join(tmp, "audio.wav")
+            download(audio, audio_path)
 
-        output_path = os.path.join(tmp, "output.mp4")
-        subprocess.run(build_ffmpeg_command(image_files, audio_path, output_path), check=True)
+            out = os.path.join(tmp, "out.mp4")
 
-        dest_name = f"video-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp4"
-        uploaded_url = upload_to_gcs(output_path, dest_name)
+            proc = subprocess.run(
+                build_ffmpeg_command(imgs, audio_path, out),
+                capture_output=True,
+                text=True
+            )
 
-        return {"status": "ok", "url": uploaded_url} if uploaded_url else {"status": "ok", "local": output_path}
+            if proc.returncode != 0:
+                return {"error": "ffmpeg failed", "stderr": proc.stderr}
+
+            return {"status": "ok", "message": "video rendered successfully"}
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
 
 runpod.serverless.start({"handler": handler})
