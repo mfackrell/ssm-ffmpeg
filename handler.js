@@ -1,10 +1,11 @@
-import runpod from "runpod-sdk";
-import { Storage } from "@google-cloud/storage";
-import ffmpegPath from "ffmpeg-static";
-import { execFileSync } from "child_process";
-import fs from "fs";
-import path from "path";
-import axios from "axios";
+const runpod = require("runpod-sdk");
+const { Storage } = require("@google-cloud/storage");
+const ffmpegPath = require("ffmpeg-static");
+const { execFileSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+
 
 const storage = new Storage(
   process.env.GCS_KEY_JSON
