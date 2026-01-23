@@ -3,9 +3,9 @@ import subprocess
 import requests
 import tempfile
 from google.cloud import storage
+import runpod
 
 BUCKET_NAME = os.environ.get("GCS_BUCKET_NAME", "ssm-renders-8822")
-
 storage_client = storage.Client()
 
 def download(url, path):
@@ -34,18 +34,27 @@ def handler(event):
 
         output_path = os.path.join(tmp, "output.mp4")
 
-        filter_complex = (
-            "[0:v]scale=1080:1080,format=rgba[v0];"
-            "[1:v]scale=1080:1080,format=rgba[v1];"
-            "[2:v]scale=1080:1080,format=rgba[v2];"
-            "[3:v]scale=1080:1080,format=rgba[v3];"
-            "[4:v]scale=1080:1080,format=rgba[v4];"
-            "[v0][v1]xfade=transition=fade:duration=1:offset=11[v01];"
-            "[v01][v2]xfade=transition=fade:duration=1:offset=22[v012];"
-            "[v012][v3]xfade=transition=fade:duration=1:offset=33[v0123];"
-            "[v0123][v4]xfade=transition=fade:duration=1:offset=44[v]"
-        )
-
         cmd = [
             "ffmpeg",
-            "-loop","1","-t","12","-i",ima
+            "-y",
+            "-loop", "1",
+            "-i", image_files[0],
+            "-i", audio_path,
+            "-c:v", "libx264",
+            "-tune", "stillimage",
+            "-c:a", "aac",
+            "-shortest",
+            output_path
+        ]
+
+        subprocess.run(cmd, check=True)
+
+        return {
+            "status": "ok",
+            "local_output": output_path
+        }
+
+# 🔴 THIS WAS MISSING
+runpod.serverless.start({
+    "handler": handler
+})
