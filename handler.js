@@ -1,4 +1,4 @@
-const runpod = require("@runpod/serverless");
+const runpod = require("runpod-sdk");
 const { Storage } = require("@google-cloud/storage");
 const ffmpegPath = require("ffmpeg-static");
 const { execFileSync } = require("child_process");
