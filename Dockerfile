@@ -4,6 +4,7 @@ FROM python:3.10-slim-buster
 # 2. Install FFmpeg and necessary system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
