@@ -1,5 +1,5 @@
 # 1. Use a slim Python base since your RunPod is set to CPU
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bullseye
 
 # 2. Install FFmpeg and necessary system dependencies
 RUN apt-get update && apt-get install -y \
