@@ -25,7 +25,7 @@ def upload_to_gcs(local_path, destination_name):
     return f"https://storage.googleapis.com/{BUCKET_NAME}/{destination_name}"
 
 def build_ffmpeg_command(image_files, audio_path, output_path):
-    # Corrected filter chain: [v0][v1]->[v01], then [v01][v2]->[v012], etc.
+    # Chaining the filters: [v01] flows into the next xfade, and so on.
     filters = (
         "[0:v]scale=1080:1080,format=rgba[v0];"
         "[1:v]scale=1080:1080,format=rgba[v1];"
@@ -71,13 +71,11 @@ def handler(event):
         download(audio_url, audio_path)
 
         output_path = os.path.join(tmp, "output.mp4")
-        cmd = build_ffmpeg_command(image_files, audio_path, output_path)
-        
-        subprocess.run(cmd, check=True)
+        subprocess.run(build_ffmpeg_command(image_files, audio_path, output_path), check=True)
 
-        destination_name = f"video-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp4"
-        uploaded_url = upload_to_gcs(output_path, destination_name)
+        dest_name = f"video-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.mp4"
+        uploaded_url = upload_to_gcs(output_path, dest_name)
 
-        return {"status": "ok", "url": uploaded_url} if uploaded_url else {"status": "ok", "local_output": output_path}
+        return {"status": "ok", "url": uploaded_url} if uploaded_url else {"status": "ok", "local": output_path}
 
 runpod.serverless.start({"handler": handler})
