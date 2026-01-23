@@ -61,6 +61,9 @@ def build_ffmpeg_command(image_files, audio_path, output_path):
 
 
 def handler(event):
+    def handler(event):
+    print("EVENT RECEIVED:", event, flush=True)
+
     payload = event.get("input", {})
     images = payload.get("images")
     audio_url = payload.get("audio")
