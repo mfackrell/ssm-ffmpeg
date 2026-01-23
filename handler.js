@@ -42,18 +42,22 @@ async function renderVideo(fileName, images, audio) {
     ]);
 
     console.log('Running ffmpeg');
-    execFileSync(ffmpegPath, [
-      '-loop','1','-t','12','-i',imageFiles[0],
-      '-loop','1','-t','12','-i',imageFiles[1],
-      '-loop','1','-t','12','-i',imageFiles[2],
-      '-loop','1','-t','12','-i',imageFiles[3],
-      '-loop','1','-t','11','-i',imageFiles[4],
-      '-i',audioFile,
-      '-c:v','libx264',
-      '-pix_fmt','yuv420p',
-      '-shortest',
-      output
-    ], { stdio: 'inherit' });
+    execFileSync(
+      ffmpegPath,
+      [
+        '-loop','1','-t','12','-i',imageFiles[0],
+        '-loop','1','-t','12','-i',imageFiles[1],
+        '-loop','1','-t','12','-i',imageFiles[2],
+        '-loop','1','-t','12','-i',imageFiles[3],
+        '-loop','1','-t','11','-i',imageFiles[4],
+        '-i',audioFile,
+        '-c:v','libx264',
+        '-pix_fmt','yuv420p',
+        '-shortest',
+        output
+      ],
+      { stdio: 'inherit' }
+    );
 
     console.log('Uploading to GCS');
     await storage.bucket(BUCKET_NAME).upload(output, {
@@ -69,7 +73,9 @@ async function renderVideo(fileName, images, audio) {
   }
 }
 
-module.exports = async function (event) {
+/* ---------------- RUNPOD HANDLER ---------------- */
+
+async function handler(event) {
   console.log('Handler invoked', JSON.stringify(event));
 
   const input = event.input;
@@ -80,5 +86,18 @@ module.exports = async function (event) {
   const filename = `video-${Date.now()}.mp4`;
   const url = await renderVideo(filename, input.images, input.audio);
   return { status: 'completed', url };
-};
+}
 
+/* ---------------- ENTRYPOINT ---------------- */
+
+// THIS is what RunPod actually executes
+(async () => {
+  if (!process.env.RUNPOD_INPUT) {
+    console.log('Container started, waiting for job');
+    return;
+  }
+
+  const event = JSON.parse(process.env.RUNPOD_INPUT);
+  const result = await handler(event);
+  console.log(JSON.stringify(result));
+})();
