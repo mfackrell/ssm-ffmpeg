@@ -12,6 +12,7 @@ COPY handler.py .
 
 RUN pip3 install \
     requests \
-    google-cloud-storage
+    google-cloud-storage \
+    runpod
 
 CMD ["python3", "-u", "handler.py"]
